@@ -1,0 +1,261 @@
+.task-row {
+  background: #f8f9fa;
+  transition: all 0.3s ease;
+  border-left: 4px solid #667eea;
+}
+
+.task-row:hover {
+  background: #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-row.completed {
+  border-left-color: #28a745;
+  opacity: 0.8;
+}
+
+.task-row td {
+  padding: 1.25rem;
+  vertical-align: middle;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+}
+
+.task-row td:first-child {
+  border-left: none;
+}
+
+.task-row td:last-child {
+  border-right: none;
+}
+
+.task-name-cell {
+  width: 20%;
+}
+
+.task-name {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.task-description-cell {
+  width: 25%;
+}
+
+.task-description {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 400;
+}
+
+.task-row.completed .task-name,
+.task-row.completed .task-description {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.task-edit-cell {
+  width: 10%;
+  text-align: center;
+}
+
+.task-action-cell {
+  width: 18%;
+  text-align: center;
+}
+
+.task-delete-cell {
+  width: 10%;
+  text-align: center;
+}
+
+.task-status-cell {
+  width: 17%;
+  text-align: center;
+}
+
+.edit-button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #667eea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.edit-button .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.edit-button:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+}
+
+.complete-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: white;
+  color: #000;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.complete-button:hover {
+  background: #28a745;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+  border-color: #28a745;
+}
+
+.delete-button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.delete-button .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.delete-button:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* task-status-cell already defined above */
+
+.task-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.task-status.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.task-status.completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.edit-mode-cell {
+  padding: 1.25rem !important;
+}
+
+.edit-mode {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.save-button,
+.cancel-button {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-button {
+  background: #28a745;
+  color: white;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-button:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tasks-table {
+    font-size: 0.9rem;
+  }
+
+  .task-row td {
+    padding: 0.75rem;
+  }
+
+  .task-name-cell,
+  .task-description-cell,
+  .task-edit-cell,
+  .task-action-cell,
+  .task-delete-cell,
+  .task-status-cell {
+    width: auto;
+  }
+
+  .complete-button {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+

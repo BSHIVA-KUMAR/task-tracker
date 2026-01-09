@@ -1,16 +1,73 @@
 import { useState } from 'react'
+import Task from './components/Task'
 import './App.css'
 
 function App() {
-  const [tasks, setTasks] = useState([])
+  // Mock tasks with initial data
+  const initialTasks = [
+    {
+      id: '1',
+      name: 'Complete Project Documentation',
+      description: 'Write comprehensive documentation for the new feature including API endpoints and user guides',
+      status: 'Pending',
+      createdAt: new Date('2024-01-15')
+    },
+    {
+      id: '2',
+      name: 'Review Code Pull Requests',
+      description: 'Review and provide feedback on 3 pending pull requests from the team members',
+      status: 'Pending',
+      createdAt: new Date('2024-01-16')
+    },
+    {
+      id: '3',
+      name: 'Update Database Schema',
+      description: 'Add new columns to user table and migrate existing data',
+      status: 'Completed',
+      createdAt: new Date('2024-01-14')
+    },
+    {
+      id: '4',
+      name: 'Prepare Presentation Slides',
+      description: 'Create slides for the quarterly review meeting with stakeholders',
+      status: 'Pending',
+      createdAt: new Date('2024-01-17')
+    },
+    {
+      id: '5',
+      name: 'Fix Bug in Login System',
+      description: 'Resolve authentication issue where users cannot login with special characters in password',
+      status: 'Pending',
+      createdAt: new Date('2024-01-18')
+    }
+  ]
+
+  const [tasks, setTasks] = useState(initialTasks)
   const [taskInput, setTaskInput] = useState('')
+  const [taskDescription, setTaskDescription] = useState('')
+  const [addTaskModal, setAddTaskModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
-  const [editValue, setEditValue] = useState('')
+  const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
   const [completeModal, setCompleteModal] = useState({ show: false, taskId: null })
   const [deleteModal, setDeleteModal] = useState({ show: false, taskId: null, taskName: '' })
+  const [historyModal, setHistoryModal] = useState(false)
+  const [taskHistory, setTaskHistory] = useState([])
 
   // Generate unique ID for tasks
   const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2)
+
+  // Open add task modal
+  const handleOpenAddModal = () => {
+    setAddTaskModal(true)
+  }
+
+  // Close add task modal
+  const handleCloseAddModal = () => {
+    setAddTaskModal(false)
+    setTaskInput('')
+    setTaskDescription('')
+  }
 
   // Add a new task
   const handleAddTask = () => {
@@ -18,35 +75,50 @@ function App() {
       const newTask = {
         id: generateId(),
         name: taskInput.trim(),
+        description: taskDescription.trim(),
         status: 'Pending',
         createdAt: new Date()
       }
       setTasks([...tasks, newTask])
       setTaskInput('')
+      setTaskDescription('')
+      setAddTaskModal(false)
     }
   }
 
   // Start editing a task
   const handleStartEdit = (task) => {
     setEditingId(task.id)
-    setEditValue(task.name)
+    setEditName(task.name)
+    setEditDescription(task.description || '')
+  }
+
+  // Handle edit input changes
+  const handleEditNameChange = (e) => {
+    setEditName(e.target.value)
+  }
+
+  const handleEditDescriptionChange = (e) => {
+    setEditDescription(e.target.value)
   }
 
   // Save edited task
   const handleSaveEdit = (taskId) => {
-    if (editValue.trim()) {
+    if (editName.trim()) {
       setTasks(tasks.map(task =>
-        task.id === taskId ? { ...task, name: editValue.trim() } : task
+        task.id === taskId ? { ...task, name: editName.trim(), description: editDescription.trim() } : task
       ))
       setEditingId(null)
-      setEditValue('')
+      setEditName('')
+      setEditDescription('')
     }
   }
 
   // Cancel editing
   const handleCancelEdit = () => {
     setEditingId(null)
-    setEditValue('')
+    setEditName('')
+    setEditDescription('')
   }
 
   // Show complete confirmation modal
@@ -56,9 +128,14 @@ function App() {
 
   // Confirm task completion
   const handleConfirmComplete = () => {
+    const updatedTask = tasks.find(task => task.id === completeModal.taskId)
     setTasks(tasks.map(task =>
       task.id === completeModal.taskId ? { ...task, status: 'Completed' } : task
     ))
+    // Add to history when task is completed
+    if (updatedTask) {
+      setTaskHistory([...taskHistory, { ...updatedTask, status: 'Completed', completedAt: new Date() }])
+    }
     setCompleteModal({ show: false, taskId: null })
   }
 
@@ -83,16 +160,36 @@ function App() {
     setDeleteModal({ show: false, taskId: null, taskName: '' })
   }
 
-  // Handle Enter key in input
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+  // Clear all completed tasks
+  const handleClearCompleted = () => {
+    const completedTasks = tasks.filter(task => task.status === 'Completed')
+    // Add completed tasks to history before removing
+    setTaskHistory([...taskHistory, ...completedTasks])
+    setTasks(tasks.filter(task => task.status !== 'Completed'))
+  }
+
+  // Show history modal
+  const handleShowHistory = () => {
+    setHistoryModal(true)
+  }
+
+  // Close history modal
+  const handleCloseHistory = () => {
+    setHistoryModal(false)
+  }
+
+  // Handle Enter key in add task modal
+  const handleAddModalKeyPress = (e) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
       handleAddTask()
+    } else if (e.key === 'Escape') {
+      handleCloseAddModal()
     }
   }
 
   // Handle Enter key in edit input
   const handleEditKeyPress = (e, taskId) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && e.ctrlKey) {
       handleSaveEdit(taskId)
     } else if (e.key === 'Escape') {
       handleCancelEdit()
@@ -102,109 +199,77 @@ function App() {
   return (
     <div className="app">
       <div className="container">
-        <h1 className="title">Task Tracker</h1>
-        
-        {/* Add Task Section */}
-        <div className="add-task-section">
-          <div className="input-wrapper">
-            <input
-              type="text"
-              id="taskInput"
-              className="task-input"
-              value={taskInput}
-              onChange={(e) => setTaskInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder=" "
-            />
-            <label htmlFor="taskInput" className="floating-label">
-              Add a new task
-            </label>
+        <div className="header-section">
+          <h1 className="title">Task Tracker</h1>
+          <div className="header-buttons">
+            <button 
+              className="add-task-button"
+              onClick={handleOpenAddModal}
+            >
+              + Add New Task
+            </button>
+            <button 
+              className="clear-completed-button"
+              onClick={handleClearCompleted}
+              disabled={!tasks.some(task => task.status === 'Completed')}
+            >
+              Clear Completed Tasks
+            </button>
+            <button 
+              className="history-button"
+              onClick={handleShowHistory}
+              disabled={taskHistory.length === 0 && !tasks.some(task => task.status === 'Completed')}
+            >
+              History of Completed Tasks
+            </button>
           </div>
-          <button 
-            className="add-button"
-            onClick={handleAddTask}
-            disabled={!taskInput.trim()}
-          >
-            Add Task
-          </button>
         </div>
 
-        {/* Tasks List */}
+        {/* Tagline */}
+        <div className="tagline-section">
+          <p className="tagline-text">
+            Task tracker - an advanced way to track your Works and Schedule events
+          </p>
+        </div>
+
+        {/* Tasks Table */}
         <div className="tasks-container">
           {tasks.length === 0 ? (
             <div className="empty-state">
               <p>No tasks yet. Add a task to get started!</p>
             </div>
           ) : (
-            <ul className="tasks-list">
-              {tasks.map((task) => (
-                <li key={task.id} className={`task-item ${task.status.toLowerCase()}`}>
-                  <div className="task-content">
-                    {editingId === task.id ? (
-                      <div className="edit-mode">
-                        <input
-                          type="text"
-                          className="edit-input"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onKeyDown={(e) => handleEditKeyPress(e, task.id)}
-                          autoFocus
-                        />
-                        <div className="edit-actions">
-                          <button
-                            className="save-button"
-                            onClick={() => handleSaveEdit(task.id)}
-                            disabled={!editValue.trim()}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="cancel-button"
-                            onClick={handleCancelEdit}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="task-info">
-                          <span className="task-name">{task.name}</span>
-                          <span className={`task-status ${task.status.toLowerCase()}`}>
-                            {task.status}
-                          </span>
-                        </div>
-                        <div className="task-actions">
-                          {task.status === 'Pending' && (
-                            <button
-                              className="complete-button"
-                              onClick={() => handleCompleteClick(task)}
-                              title="Mark as completed"
-                            >
-                              ✓
-                            </button>
-                          )}
-                          <button
-                            className="edit-button"
-                            onClick={() => handleStartEdit(task)}
-                            title="Edit task"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            className="delete-button"
-                            onClick={() => handleDeleteClick(task)}
-                            title="Delete task"
-                          >
-                            🗑
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <table className="tasks-table">
+              <thead>
+                <tr className="tasks-header">
+                  <th className="header-task">Task</th>
+                  <th className="header-description">Description</th>
+                  <th className="header-status">Status</th>
+                  <th className="header-edit">Edit</th>
+                  <th className="header-action">Action</th>
+                  <th className="header-delete">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((task) => (
+                  <Task
+                    key={task.id}
+                    task={task}
+                    editingId={editingId}
+                    editName={editName}
+                    editDescription={editDescription}
+                    onStartEdit={handleStartEdit}
+                    onEditNameChange={handleEditNameChange}
+                    onEditDescriptionChange={handleEditDescriptionChange}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onEditKeyPress={handleEditKeyPress}
+                    onCompleteClick={handleCompleteClick}
+                    onDeleteClick={handleDeleteClick}
+                  />
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
 
@@ -226,6 +291,58 @@ function App() {
           </div>
         )}
 
+        {/* Add Task Modal */}
+        {addTaskModal && (
+          <div className="modal-overlay" onClick={handleCloseAddModal}>
+            <div className="modal-content add-task-modal" onClick={(e) => e.stopPropagation()}>
+              <h3>Add New Task</h3>
+              <div className="modal-input-group">
+                <div className="modal-input-wrapper">
+                  <label htmlFor="modalTaskName" className="modal-label">
+                    Task Name
+                  </label>
+                  <input
+                    type="text"
+                    id="modalTaskName"
+                    className="modal-input"
+                    value={taskInput}
+                    onChange={(e) => setTaskInput(e.target.value)}
+                    onKeyDown={handleAddModalKeyPress}
+                    placeholder="Enter task name"
+                    autoFocus
+                  />
+                </div>
+                <div className="modal-input-wrapper">
+                  <label htmlFor="modalTaskDescription" className="modal-label">
+                    Task Description
+                  </label>
+                  <input
+                    type="text"
+                    id="modalTaskDescription"
+                    className="modal-input"
+                    value={taskDescription}
+                    onChange={(e) => setTaskDescription(e.target.value)}
+                    onKeyDown={handleAddModalKeyPress}
+                    placeholder="Enter task description"
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button 
+                  className="add-button-modal" 
+                  onClick={handleAddTask}
+                  disabled={!taskInput.trim()}
+                >
+                  Add Task
+                </button>
+                <button className="cancel-button" onClick={handleCloseAddModal}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Delete Task Modal */}
         {deleteModal.show && (
           <div className="modal-overlay" onClick={handleCancelDelete}>
@@ -238,6 +355,50 @@ function App() {
                 </button>
                 <button className="cancel-button" onClick={handleCancelDelete}>
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* History Modal */}
+        {historyModal && (
+          <div className="modal-overlay" onClick={handleCloseHistory}>
+            <div className="modal-content history-modal" onClick={(e) => e.stopPropagation()}>
+              <h3>History of Completed Tasks</h3>
+              <div className="history-content">
+                {(() => {
+                  const currentCompleted = tasks.filter(task => task.status === 'Completed')
+                  const allHistory = [...currentCompleted, ...taskHistory]
+                  // Remove duplicates based on task id
+                  const uniqueHistory = allHistory.filter((task, index, self) =>
+                    index === self.findIndex(t => t.id === task.id)
+                  )
+                  
+                  if (uniqueHistory.length === 0) {
+                    return <p className="no-history">No completed tasks in history yet.</p>
+                  }
+                  
+                  return (
+                    <div className="history-list">
+                      {uniqueHistory.map((task) => (
+                        <div key={`history-${task.id}`} className="history-item">
+                          <div className="history-item-info">
+                            <span className="history-task-name">{task.name}</span>
+                            {task.description && (
+                              <span className="history-task-description">{task.description}</span>
+                            )}
+                          </div>
+                          <span className="history-status completed">Completed</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </div>
+              <div className="modal-actions">
+                <button className="cancel-button" onClick={handleCloseHistory}>
+                  Close
                 </button>
               </div>
             </div>
